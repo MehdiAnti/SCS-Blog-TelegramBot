@@ -96,7 +96,7 @@ CF_NAMESPACE_ID
 
 # License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](https://github.com/MehdiAnti/SCS-Blog-TelegramBot/blob/main/LICENSE).
 
 ---
 
