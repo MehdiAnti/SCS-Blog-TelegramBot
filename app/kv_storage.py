@@ -8,7 +8,7 @@ from app.config import (
 )
 
 KEY = "latest_article"
-
+STATUS_KEY = "status"
 
 def _headers():
     return {
@@ -17,12 +17,16 @@ def _headers():
     }
 
 
-def _url():
+def _url_for(key):
     return (
         "https://api.cloudflare.com/client/v4/accounts/"
         f"{CF_ACCOUNT_ID}/storage/kv/namespaces/"
-        f"{CF_NAMESPACE_ID}/values/{KEY}"
+        f"{CF_NAMESPACE_ID}/values/{key}"
     )
+
+
+def _url():
+    return _url_for(KEY)
 
 
 def _normalize_url(url):
@@ -86,6 +90,36 @@ def save_detected(url_value, title):
         _url(),
         headers=_headers(),
         data=json.dumps(payload),
+        timeout=30,
+    )
+
+    response.raise_for_status()
+
+    return True
+
+
+def get_status():
+
+    response = requests.get(
+        _url_for(STATUS_KEY),
+        headers=_headers(),
+        timeout=30,
+    )
+
+    if response.status_code == 404:
+        return {}
+
+    response.raise_for_status()
+
+    return response.json()
+
+
+def save_status(status):
+
+    response = requests.put(
+        _url_for(STATUS_KEY),
+        headers=_headers(),
+        data=json.dumps(status),
         timeout=30,
     )
 
