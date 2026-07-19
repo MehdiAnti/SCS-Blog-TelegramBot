@@ -161,7 +161,7 @@ def _get_teaser(text, limit=400):
         return text
 
     return (
-        text[:limit].rstrip()
+        text[:limit].rstrip(" ", 1)[0]
         + "..."
     )
     
