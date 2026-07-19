@@ -21,6 +21,7 @@ def send_message(chat_id, text):
         json={
             "chat_id": chat_id,
             "text": text,
+            "parse_mode": "HTML",
             "disable_web_page_preview": True,
         },
         timeout=60,
@@ -131,6 +132,7 @@ def send_channel_article(
 def send_article(
     chat_id,
     article_url,
+    publish_channel=False,
 ):
 
     article = fetch_article(article_url)
@@ -158,8 +160,8 @@ def send_article(
     rich_html = build_rich_article(
         article_html
     )
-
-    if POST_TO_CHANNEL:
+    
+    if publish_channel:
 
         print(
             f"Posting article to channel {CHANNEL_ID}"
