@@ -1,5 +1,3 @@
-import os
-
 from flask import (
     Flask,
     jsonify,
@@ -24,7 +22,6 @@ from app.kv_storage import (
 from app.telegram import (
     send_article,
     send_message,
-    send_rich_message,
 )
 
 app = Flask(__name__)
@@ -80,6 +77,68 @@ def cmd_preview(chat_id, text):
         publish_channel=False,
     )
 
+
+def cmd_checknow(chat_id):
+
+    try:
+
+        result = run_check()
+
+        if result["status"] == "no_new_article":
+
+            send_message(
+                chat_id,
+                "ℹ️ No new article found.",
+            )
+
+            return
+
+        send_message(
+            chat_id,
+            (
+                "✅ Published successfully.\n\n"
+                f"{result['title']}"
+            ),
+        )
+
+    except Exception as e:
+
+        send_message(
+            chat_id,
+            f"❌ {e}",
+        )
+
+
+def run_check():
+
+    latest = get_latest_post()
+
+    if not article_is_new(
+        latest["url"]
+    ):
+
+        return {
+            "status": "no_new_article",
+        }
+
+    article = send_article(
+        ALLOWED_USER,
+        latest["url"],
+        publish_channel=True,
+    )
+
+    save_detected(
+        article["url"],
+        article["title"],
+    )
+
+    return {
+        "status": "posted",
+        "url": article["url"],
+        "title": article["title"],
+    }
+
+
 @app.route("/", methods=["GET"])
 def home():
 
@@ -125,6 +184,10 @@ def webhook():
                 chat_id,
                 text,
             )
+        
+        elif text == "/checknow":
+            
+            cmd_checknow(chat_id)
 
     except Exception as e:
 
@@ -141,35 +204,10 @@ def check():
 
     try:
 
-        latest = get_latest_post()
-
-        if not article_is_new(
-            latest["url"]
-        ):
-
-            return (
-                jsonify({
-                    "status": "no_new_article",
-                }),
-                200,
-            )
-
-        article = send_article(
-            ALLOWED_USER,
-            latest["url"],
-            publish_channel=True,
-        )
-
-        save_detected(
-            article["url"],
-            article["title"],
-        )
+        result = run_check()
 
         return (
-            jsonify({
-                "status": "posted",
-                "url": article["url"],
-            }),
+            jsonify(result),
             200,
         )
 
