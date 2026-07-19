@@ -1,5 +1,8 @@
-from time import (
+from datetime import (
     datetime,
+)
+
+from time import (
     perf_counter,
 )
 
