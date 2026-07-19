@@ -120,7 +120,7 @@ def webhook():
 
         elif text.startswith("/preview "):
 
-            cmd_test(
+            cmd_preview(
                 chat_id,
                 text,
             )
