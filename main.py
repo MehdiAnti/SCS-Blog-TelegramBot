@@ -56,7 +56,7 @@ def cmd_latest(chat_id):
     )
 
 
-def cmd_test(chat_id, text):
+def cmd_preview(chat_id, text):
 
     parts = text.split(
         " ",
@@ -67,7 +67,7 @@ def cmd_test(chat_id, text):
 
         send_message(
             chat_id,
-            "Usage:\n/test ARTICLE_URL",
+            "Usage:\n/preview ARTICLE_URL",
         )
 
         return
@@ -118,7 +118,7 @@ def webhook():
 
             cmd_latest(chat_id)
 
-        elif text.startswith("/test "):
+        elif text.startswith("/preview "):
 
             cmd_test(
                 chat_id,
