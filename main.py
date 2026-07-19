@@ -1,4 +1,7 @@
-from datetime import datetime
+from datetime import (
+    datetime,
+    perf_counter,
+)
 
 from flask import (
     Flask,
@@ -134,6 +137,8 @@ def cmd_publish(chat_id, text):
     LAST_STATUS["latest_title"] = article["title"]
     LAST_STATUS["latest_url"] = article["url"]
     LAST_STATUS["last_error"] = ""
+    LAST_STATUS["kv"] = 0.0
+    LAST_STATUS["total"] = 0.0
 
     save_status(LAST_STATUS)
 
@@ -210,19 +215,29 @@ def cmd_status(chat_id):
 
 def run_check():
 
+    total_start = perf_counter()
+
     try:
 
+        rss_start = perf_counter()
         latest = get_latest_post()
+        LAST_STATUS["rss"] = round(
+            perf_counter() - rss_start,
+            2,
+        )
 
-        if not article_is_new(
-            latest["url"]
-        ):
-            
+        if not article_is_new(latest["url"]):
+
             LAST_STATUS["latest_title"] = latest["title"]
             LAST_STATUS["latest_url"] = latest["url"]
             LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             LAST_STATUS["last_result"] = "no_new_article"
             LAST_STATUS["last_error"] = ""
+            LAST_STATUS["kv"] = 0.0
+            LAST_STATUS["total"] = round(
+                perf_counter() - total_start,
+                2,
+            )
 
             save_status(LAST_STATUS)
 
@@ -235,10 +250,17 @@ def run_check():
             latest["url"],
             publish_channel=True,
         )
+        
+        kv_start = perf_counter()
 
         save_detected(
             article["url"],
             article["title"],
+        )
+
+        LAST_STATUS["kv"] = round(
+            perf_counter() - kv_start,
+            2,
         )
 
         LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -246,6 +268,10 @@ def run_check():
         LAST_STATUS["latest_title"] = article["title"]
         LAST_STATUS["latest_url"] = article["url"]
         LAST_STATUS["last_error"] = ""
+        LAST_STATUS["total"] = round(
+            perf_counter() - total_start,
+            2,
+        )
 
         save_status(LAST_STATUS)
 
@@ -260,10 +286,17 @@ def run_check():
         LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         LAST_STATUS["last_result"] = "failed"
         LAST_STATUS["last_error"] = str(e)
+        LAST_STATUS["telegram"] = 0.0
+        LAST_STATUS["kv"] = 0.0
+        LAST_STATUS["total"] = round(
+            perf_counter() - total_start,
+            2,
+        )
 
         save_status(LAST_STATUS)
 
         raise
+        
 
 @app.route("/", methods=["GET"])
 def home():
