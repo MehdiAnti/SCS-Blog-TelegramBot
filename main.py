@@ -24,6 +24,8 @@ from app.kv_storage import (
     article_is_new,
     get_last_article,
     save_detected,
+    get_status,
+    save_status,
 )
 
 from app.telegram import (
@@ -33,6 +35,10 @@ from app.telegram import (
 
 app = Flask(__name__)
 
+try:
+    LAST_STATUS.update(get_status())
+except Exception:
+    pass
 
 def cmd_start(chat_id):
 
@@ -129,6 +135,8 @@ def cmd_publish(chat_id, text):
     LAST_STATUS["latest_url"] = article["url"]
     LAST_STATUS["last_error"] = ""
 
+    save_status(LAST_STATUS)
+
     send_message(
         chat_id,
         (
@@ -171,7 +179,7 @@ def cmd_checknow(chat_id):
 
 def cmd_status(chat_id):
 
-    s = LAST_STATUS
+    s = get_status()
 
     text = (
         "<b>📊 Bot Status</b>\n\n"
@@ -216,6 +224,8 @@ def run_check():
             LAST_STATUS["last_result"] = "no_new_article"
             LAST_STATUS["last_error"] = ""
 
+            save_status(LAST_STATUS)
+
             return {
                 "status": "no_new_article",
             }
@@ -237,6 +247,8 @@ def run_check():
         LAST_STATUS["latest_url"] = article["url"]
         LAST_STATUS["last_error"] = ""
 
+        save_status(LAST_STATUS)
+
         return {
             "status": "posted",
             "url": article["url"],
@@ -248,6 +260,8 @@ def run_check():
         LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         LAST_STATUS["last_result"] = "failed"
         LAST_STATUS["last_error"] = str(e)
+
+        save_status(LAST_STATUS)
 
         raise
 
