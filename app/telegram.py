@@ -1,5 +1,11 @@
 import requests
 
+from time import perf_counter
+
+from app.status import (
+    LAST_STATUS,
+)
+
 from app.config import (
     API_BASE,
     CHANNEL_ID,
@@ -135,10 +141,28 @@ def send_article(
     publish_channel=False,
 ):
 
+    article_start = perf_counter()
+
     article = fetch_article(article_url)
+
+    LAST_STATUS["article"] = round(
+        perf_counter() - article_start,
+        2,
+    )
+
+    clean_start = perf_counter()
 
     article_html = clean_article(
         article["html"]
+    )
+
+    rich_html = build_rich_article(
+        article_html
+    )
+
+    LAST_STATUS["clean"] = round(
+        perf_counter() - clean_start,
+        2,
     )
 
     preview = build_preview(
@@ -147,49 +171,56 @@ def send_article(
         article["teaser"],
     )
 
-    photo_result = None
-
-    if article["hero_image"]:
-
-        photo_result = send_photo(
-            chat_id,
-            article["hero_image"],
-            preview[:1024],
-        )
-
-    rich_html = build_rich_article(
-        article_html
-    )
-    
-    if publish_channel:
-
-        print(
-            f"Posting article to channel {CHANNEL_ID}"
-        )
-
-        send_channel_article(
-            preview,
-            rich_html,
-            article["hero_image"],
-        )
-
-    reply_id = None
+    telegram_start = perf_counter()
 
     try:
 
-        if photo_result:
+        photo_result = None
 
-            reply_id = (
-                photo_result["result"]["message_id"]
+        if article["hero_image"]:
+
+            photo_result = send_photo(
+                chat_id,
+                article["hero_image"],
+                preview[:1024],
             )
 
-    except Exception:
-        pass
+        if publish_channel:
 
-    send_rich_message(
-        chat_id,
-        rich_html,
-        reply_id,
-    )
+            print(
+                f"Posting article to channel {CHANNEL_ID}"
+            )
+
+            send_channel_article(
+                preview,
+                rich_html,
+                article["hero_image"],
+            )
+
+        reply_id = None
+
+        try:
+
+            if photo_result:
+
+                reply_id = (
+                    photo_result["result"]["message_id"]
+                )
+
+        except Exception:
+            pass
+
+        send_rich_message(
+            chat_id,
+            rich_html,
+            reply_id,
+        )
+
+    finally:
+
+        LAST_STATUS["telegram"] = round(
+            perf_counter() - telegram_start,
+            2,
+        )
 
     return article
