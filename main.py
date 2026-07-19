@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import (
     Flask,
     jsonify,
@@ -8,6 +10,11 @@ from app.config import (
     ALLOWED_USER,
     PORT,
 )
+
+from app.status import (
+    LAST_STATUS,
+)
+
 
 from app.blogger import (
     get_latest_post,
@@ -26,12 +33,21 @@ from app.telegram import (
 
 app = Flask(__name__)
 
+
 def cmd_start(chat_id):
 
     send_message(
         chat_id,
         (
-            "bib"
+            "<b>SCS Blog Telegram Bot</b>\n\n"
+            
+            "<b>Commands</b>\n"
+            
+            "/latest - Last stored article\n"
+            "/status - Bot status\n"
+            "/checknow - Check immediately\n"
+            "/preview URL - Preview article\n"
+            "/publish URL - Publish article\n"
         ),
     )
 
@@ -78,6 +94,50 @@ def cmd_preview(chat_id, text):
     )
 
 
+def cmd_publish(chat_id, text):
+
+    parts = text.split(
+        " ",
+        1,
+    )
+
+    if len(parts) != 2:
+
+        send_message(
+            chat_id,
+            "Usage:\n/publish ARTICLE_URL",
+        )
+
+        return
+
+    article_url = parts[1].strip()
+
+    article = send_article(
+        chat_id,
+        article_url,
+        publish_channel=True,
+    )
+
+    save_detected(
+        article["url"],
+        article["title"],
+    )
+
+    LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    LAST_STATUS["last_result"] = "posted"
+    LAST_STATUS["latest_title"] = article["title"]
+    LAST_STATUS["latest_url"] = article["url"]
+    LAST_STATUS["last_error"] = ""
+
+    send_message(
+        chat_id,
+        (
+            "✅ Published.\n\n"
+            f"{article['title']}"
+        ),
+    )
+
+
 def cmd_checknow(chat_id):
 
     try:
@@ -109,35 +169,87 @@ def cmd_checknow(chat_id):
         )
 
 
+def cmd_status(chat_id):
+
+    s = LAST_STATUS
+
+    text = (
+        "<b>📊 Bot Status</b>\n\n"
+
+        f"<b>Last Result:</b> {s['last_result']}\n"
+        f"<b>Last Check:</b> {s['last_check']}\n\n"
+
+        f"<b>Latest Article:</b>\n"
+        f"{s['latest_title']}\n"
+        f"{s['latest_url']}\n\n"
+
+        "<b>Timings</b>\n"
+        f"RSS: {s['rss']:.2f}s\n"
+        f"Article: {s['article']:.2f}s\n"
+        f"Clean: {s['clean']:.2f}s\n"
+        f"Telegram: {s['telegram']:.2f}s\n"
+        f"KV: {s['kv']:.2f}s\n"
+        f"Total: {s['total']:.2f}s\n\n"
+
+        f"<b>Last Error:</b>\n{s['last_error'] or 'None'}"
+    )
+
+    send_message(
+        chat_id,
+        text,
+    )
+    
+
 def run_check():
 
-    latest = get_latest_post()
+    try:
 
-    if not article_is_new(
-        latest["url"]
-    ):
+        latest = get_latest_post()
+
+        if not article_is_new(
+            latest["url"]
+        ):
+            
+            LAST_STATUS["latest_title"] = latest["title"]
+            LAST_STATUS["latest_url"] = latest["url"]
+            LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            LAST_STATUS["last_result"] = "no_new_article"
+            LAST_STATUS["last_error"] = ""
+
+            return {
+                "status": "no_new_article",
+            }
+
+        article = send_article(
+            ALLOWED_USER,
+            latest["url"],
+            publish_channel=True,
+        )
+
+        save_detected(
+            article["url"],
+            article["title"],
+        )
+
+        LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        LAST_STATUS["last_result"] = "posted"
+        LAST_STATUS["latest_title"] = article["title"]
+        LAST_STATUS["latest_url"] = article["url"]
+        LAST_STATUS["last_error"] = ""
 
         return {
-            "status": "no_new_article",
+            "status": "posted",
+            "url": article["url"],
+            "title": article["title"],
         }
 
-    article = send_article(
-        ALLOWED_USER,
-        latest["url"],
-        publish_channel=True,
-    )
+    except Exception as e:
 
-    save_detected(
-        article["url"],
-        article["title"],
-    )
+        LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        LAST_STATUS["last_result"] = "failed"
+        LAST_STATUS["last_error"] = str(e)
 
-    return {
-        "status": "posted",
-        "url": article["url"],
-        "title": article["title"],
-    }
-
+        raise
 
 @app.route("/", methods=["GET"])
 def home():
@@ -184,10 +296,21 @@ def webhook():
                 chat_id,
                 text,
             )
+
+        elif text.startswith("/publish "):
+            
+            cmd_publish(
+                chat_id,
+                text,
+            )
         
         elif text == "/checknow":
             
             cmd_checknow(chat_id)
+        
+        elif text == "/status":
+            
+            cmd_status(chat_id)
 
     except Exception as e:
 
