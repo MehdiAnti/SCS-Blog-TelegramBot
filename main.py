@@ -77,6 +77,7 @@ def cmd_preview(chat_id, text):
     send_article(
         chat_id,
         article_url,
+        publish_channel=False,
     )
 
 @app.route("/", methods=["GET"])
@@ -156,6 +157,7 @@ def check():
         article = send_article(
             ALLOWED_USER,
             latest["url"],
+            publish_channel=True,
         )
 
         save_detected(
