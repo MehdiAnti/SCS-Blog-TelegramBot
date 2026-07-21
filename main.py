@@ -218,13 +218,6 @@ def cmd_status(chat_id):
 
 def run_check():
 
-    LAST_STATUS["rss"] = 0.0
-    LAST_STATUS["article"] = 0.0
-    LAST_STATUS["clean"] = 0.0
-    LAST_STATUS["telegram"] = 0.0
-    LAST_STATUS["kv"] = 0.0
-    LAST_STATUS["total"] = 0.0
-
     total_start = perf_counter()
 
     try:
@@ -237,19 +230,6 @@ def run_check():
         )
 
         if not article_is_new(latest["url"]):
-
-            LAST_STATUS["latest_title"] = latest["title"]
-            LAST_STATUS["latest_url"] = latest["url"]
-            LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            LAST_STATUS["last_result"] = "no_new_article"
-            LAST_STATUS["last_error"] = ""
-            LAST_STATUS["kv"] = 0.0
-            LAST_STATUS["total"] = round(
-                perf_counter() - total_start,
-                2,
-            )
-
-            save_status(LAST_STATUS)
 
             return {
                 "status": "no_new_article",
@@ -296,14 +276,6 @@ def run_check():
         LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         LAST_STATUS["last_result"] = "failed"
         LAST_STATUS["last_error"] = str(e)
-        LAST_STATUS["telegram"] = 0.0
-        LAST_STATUS["kv"] = 0.0
-        LAST_STATUS["article"] = 0.0
-        LAST_STATUS["clean"] = 0.0
-        LAST_STATUS["total"] = round(
-            perf_counter() - total_start,
-            2,
-        )
 
         save_status(LAST_STATUS)
 
