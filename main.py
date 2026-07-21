@@ -218,6 +218,13 @@ def cmd_status(chat_id):
 
 def run_check():
 
+    LAST_STATUS["rss"] = 0.0
+    LAST_STATUS["article"] = 0.0
+    LAST_STATUS["clean"] = 0.0
+    LAST_STATUS["telegram"] = 0.0
+    LAST_STATUS["kv"] = 0.0
+    LAST_STATUS["total"] = 0.0
+
     total_start = perf_counter()
 
     try:
@@ -291,6 +298,8 @@ def run_check():
         LAST_STATUS["last_error"] = str(e)
         LAST_STATUS["telegram"] = 0.0
         LAST_STATUS["kv"] = 0.0
+        LAST_STATUS["article"] = 0.0
+        LAST_STATUS["clean"] = 0.0
         LAST_STATUS["total"] = round(
             perf_counter() - total_start,
             2,
