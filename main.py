@@ -200,12 +200,12 @@ def cmd_status(chat_id):
         f"{s['latest_url']}\n\n"
 
         "<b>Timings</b>\n"
-        f"RSS: {s['rss']:.2f}s\n"
-        f"Article: {s['article']:.2f}s\n"
-        f"Clean: {s['clean']:.2f}s\n"
-        f"Telegram: {s['telegram']:.2f}s\n"
-        f"KV: {s['kv']:.2f}s\n"
-        f"Total: {s['total']:.2f}s\n\n"
+        f"RSS: {s['rss']:.3f}s\n"
+        f"Article: {s['article']:.3f}s\n"
+        f"Clean: {s['clean']:.3f}s\n"
+        f"Telegram: {s['telegram']:.3f}s\n"
+        f"KV: {s['kv']:.3f}s\n"
+        f"Total: {s['total']:.3f}s\n\n"
 
         f"<b>Last Error:</b>\n{s['last_error'] or 'None'}"
     )
@@ -226,7 +226,7 @@ def run_check():
         latest = get_latest_post()
         LAST_STATUS["rss"] = round(
             perf_counter() - rss_start,
-            2,
+            3,
         )
 
         if not article_is_new(latest["url"]):
@@ -250,7 +250,7 @@ def run_check():
 
         LAST_STATUS["kv"] = round(
             perf_counter() - kv_start,
-            2,
+            3,
         )
 
         LAST_STATUS["last_check"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -260,7 +260,7 @@ def run_check():
         LAST_STATUS["last_error"] = ""
         LAST_STATUS["total"] = round(
             perf_counter() - total_start,
-            2,
+            3,
         )
 
         save_status(LAST_STATUS)
