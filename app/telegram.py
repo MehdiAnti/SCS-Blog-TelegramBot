@@ -147,7 +147,7 @@ def send_article(
 
     LAST_STATUS["article"] = round(
         perf_counter() - article_start,
-        2,
+        3,
     )
 
     clean_start = perf_counter()
@@ -162,7 +162,7 @@ def send_article(
 
     LAST_STATUS["clean"] = round(
         perf_counter() - clean_start,
-        2,
+        3,
     )
 
     preview = build_preview(
