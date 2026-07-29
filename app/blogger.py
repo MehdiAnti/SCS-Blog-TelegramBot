@@ -167,8 +167,8 @@ def _get_teaser(text, limit=400):
 
 def get_latest_post():
     """
-    Try homepage first.
-    Fallback to RSS.
+    +Try homepage first.
+    -Fallback to RSS.
     """
 
     try:
@@ -176,8 +176,9 @@ def get_latest_post():
 
     except Exception as e:
         print(f"Homepage failed: {e}")
-
-        return _get_latest_post_rss()
+        
+        raise
+#       return _get_latest_post_rss()
 
 
 def fetch_article(url):
