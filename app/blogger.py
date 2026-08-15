@@ -6,13 +6,14 @@ from email.utils import parsedate_to_datetime
 
 from app.config import (
     RSS_URL,
+    BLOG_URL,
     HEADERS,
 )
 
 def _get_latest_post_homepage():
 
     response = requests.get(
-        "https://blog.scssoft.com",
+        BLOG_URL,
         headers=HEADERS,
         timeout=30,
     )
@@ -139,11 +140,13 @@ def _extract_youtube_link(iframe):
     if not src:
         return None
 
-    if "youtube.com" in src:
-        return src
+    match = re.search(
+        r"(?:youtube\.com/embed/|youtu\.be/)([^?&/]+)",
+        src,
+    )
 
-    if "youtu.be" in src:
-        return src
+    if match:
+        return f"https://youtu.be/{match.group(1)}"
 
     return None
 
@@ -177,8 +180,7 @@ def get_latest_post():
     except Exception as e:
         print(f"Homepage failed: {e}")
         
-        raise
-#       return _get_latest_post_rss()
+        return _get_latest_post_rss()
 
 
 def fetch_article(url):
