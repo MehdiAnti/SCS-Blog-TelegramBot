@@ -19,6 +19,10 @@ API_BASE = (
     f"https://api.telegram.org/bot{BOT_TOKEN}"
 )
 
+BLOG_URL = (
+    "https://blog.scssoft.com"
+)
+
 RSS_URL = (
     "https://feeds.feedburner.com/ScsSoftwaresBlog"
 )
