@@ -79,8 +79,20 @@ def _convert_iframes(soup):
             continue
 
         if "youtube.com" in src:
-
-            text = "\n🎥 Watch Video"
+            match = re.search(
+                r"youtube\.com/embed/([^?&/]+)",
+                src,
+            )
+            
+            if not match:
+                iframe.decompose()
+                continue
+                
+                src = (
+                    f"https://youtu.be/{match.group(1)}"
+                )
+                
+                text = "\n\n🎥 Watch Video"
 
         elif "store.steampowered.com/widget/" in src:
 
@@ -98,7 +110,7 @@ def _convert_iframes(soup):
                 f"{appid.group(1)}/"
             )
 
-            text = "\n🎮 Steam Store"
+            text = "\n\n🎮 Steam Store"
 
         else:
             iframe.decompose()
