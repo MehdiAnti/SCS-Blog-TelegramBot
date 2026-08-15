@@ -88,11 +88,12 @@ def _convert_iframes(soup):
                 iframe.decompose()
                 continue
                 
-                src = (
-                    f"https://youtu.be/{match.group(1)}"
-                )
-                
-                text = "\n\n🎥 Watch Video"
+            src = (
+                f"https://youtu.be/{match.group(1)}"
+
+            )
+            
+            text = "\n\n🎥 Watch Video"
 
         elif "store.steampowered.com/widget/" in src:
 
