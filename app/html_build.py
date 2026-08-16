@@ -93,7 +93,7 @@ def _convert_iframes(soup):
 
             )
             
-            text = "\n\n🎥 Watch Video"
+            text = "🎥 Watch Video"
 
         elif "store.steampowered.com/widget/" in src:
 
@@ -111,7 +111,7 @@ def _convert_iframes(soup):
                 f"{appid.group(1)}/"
             )
 
-            text = "\n\n🎮 Steam Store"
+            text = "🎮 Steam Store"
 
         else:
             iframe.decompose()
@@ -125,6 +125,10 @@ def _convert_iframes(soup):
         link.string = text
 
         paragraph = soup.new_tag("p")
+
+        br = soup.new_tag("br")
+        paragraph.append(br)
+        
         paragraph.append(link)
 
         iframe.replace_with(paragraph)
@@ -179,6 +183,10 @@ def _cleanup_images_and_links(soup):
             link.string = "🎞 View Animation"
 
             paragraph = soup.new_tag("p")
+            
+            br = soup.new_tag("br")
+            paragraph.append(br)
+            
             paragraph.append(link)
 
             img.replace_with(paragraph)
