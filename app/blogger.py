@@ -10,11 +10,13 @@ from app.config import (
     HEADERS,
 )
 
+session = requests.Session()
+session.headers.update(HEADERS)
+
 def _get_latest_post_homepage():
 
-    response = requests.get(
+    response = session.get(
         BLOG_URL,
-        headers=HEADERS,
         timeout=30,
     )
 
@@ -44,9 +46,8 @@ def _get_latest_post_rss():
     Supports Atom and RSS feeds.
     """
 
-    response = requests.get(
+    response = session.get(
         RSS_URL,
-        headers=HEADERS,
         timeout=30,
     )
 
@@ -133,24 +134,6 @@ def _get_latest_post_rss():
     )
 
 
-def _extract_youtube_link(iframe):
-
-    src = iframe.get("src", "")
-
-    if not src:
-        return None
-
-    match = re.search(
-        r"(?:youtube\.com/embed/|youtu\.be/)([^?&/]+)",
-        src,
-    )
-
-    if match:
-        return f"https://youtu.be/{match.group(1)}"
-
-    return None
-
-
 def _get_teaser(text, limit=400):
 
     text = re.sub(
@@ -170,8 +153,8 @@ def _get_teaser(text, limit=400):
 
 def get_latest_post():
     """
-    +Try homepage first.
-    -Fallback to RSS.
+    Try homepage first.
+    Fallback to RSS.
     """
 
     try:
@@ -191,14 +174,12 @@ def fetch_article(url):
         url,
         hero_image,
         teaser,
-        youtube_links,
         html
     }
     """
 
-    response = requests.get(
+    response = session.get(
         url,
-        headers=HEADERS,
         timeout=30,
     )
 
@@ -250,15 +231,6 @@ def fetch_article(url):
             hero_image = src
             break
 
-    youtube_links = []
-
-    for iframe in body.find_all("iframe"):
-
-        yt = _extract_youtube_link(iframe)
-
-        if yt:
-            youtube_links.append(yt)
-
     for img in body.find_all("img"):
 
         parent = img.parent
@@ -285,6 +257,5 @@ def fetch_article(url):
         "url": url,
         "hero_image": hero_image,
         "teaser": teaser,
-        "youtube_links": youtube_links,
         "html": str(body),
     }
