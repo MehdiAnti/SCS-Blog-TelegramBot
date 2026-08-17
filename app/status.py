@@ -1,5 +1,5 @@
 LAST_STATUS = {
-    "rss": 0.0,
+    "latest": 0.0,
     "article": 0.0,
     "clean": 0.0,
     "telegram": 0.0,
