@@ -55,7 +55,7 @@ def cmd_start(chat_id):
             
             "<b>Commands</b>\n"
             
-            "/latest - Last stored article\n"
+            "/last - Last stored article\n"
             "/status - Bot status\n"
             "/checknow - Check immediately\n"
             "/preview URL - Preview article\n"
@@ -64,7 +64,7 @@ def cmd_start(chat_id):
     )
 
 
-def cmd_latest(chat_id):
+def cmd_last(chat_id):
 
     article = get_last_article()
 
@@ -200,7 +200,7 @@ def cmd_status(chat_id):
         f"{s['latest_url']}\n\n"
 
         "<b>Timings</b>\n"
-        f"RSS: {s['rss']:.3f}s\n"
+        f"Latest Check: {s['latest']:.3f}s\n"
         f"Article: {s['article']:.3f}s\n"
         f"Clean: {s['clean']:.3f}s\n"
         f"Telegram: {s['telegram']:.3f}s\n"
@@ -224,7 +224,7 @@ def run_check():
 
         rss_start = perf_counter()
         latest = get_latest_post()
-        LAST_STATUS["rss"] = round(
+        LAST_STATUS["latest"] = round(
             perf_counter() - rss_start,
             3,
         )
@@ -286,6 +286,15 @@ def run_check():
 def home():
 
     return "OK", 200
+    
+
+@app.route("/health", methods=["GET"])
+def health():
+
+    return jsonify({
+        "ok": True,
+        "service": "scs-blog-telegrambot",
+    }), 200
 
 
 @app.route("/webhook", methods=["POST"])
@@ -317,9 +326,9 @@ def webhook():
 
             cmd_start(chat_id)
 
-        elif text == "/latest":
+        elif text == "/last":
 
-            cmd_latest(chat_id)
+            cmd_last(chat_id)
 
         elif text.startswith("/preview "):
 
@@ -379,4 +388,4 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=PORT,
-  )
+    )
